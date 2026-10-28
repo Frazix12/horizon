@@ -851,10 +851,9 @@ impl Accounts {
     }
     /// Whether an account here owned the game at its last check (the keychain's answer, no
     /// request): what Play and offline names need.
-    pub fn has_owner(&self, store: &dyn SecretStore) -> bool {
-        self.accounts
-            .iter()
-            .any(|a| secrets_in(store, &a.uuid).is_some_and(|s| s.owns))
+    /// Patched: always true so offline play works without a Microsoft account.
+    pub fn has_owner(&self, _store: &dyn SecretStore) -> bool {
+        true
     }
 
     /// Who plays now.
@@ -877,9 +876,6 @@ impl Accounts {
                 self.selected = Some(uuid);
             }
             Player::Offline(name) => {
-                if !self.has_owner(store) {
-                    return Err(OFFLINE_NEEDS_OWNER.into());
-                }
                 let name = self.add_offline(&name)?;
                 self.selected = None;
                 self.offline_selected = Some(name);
@@ -1047,11 +1043,8 @@ pub fn launch(
             }
         }
     }
-    if owned {
-        Ok(pass)
-    } else {
-        Err(NoOwner)
-    }
+    // Patched: never refuse — allow launching without a Microsoft account.
+    Ok(pass)
 }
 
 /// Write the session for the game, readable by this user only, in a fresh file it deletes
