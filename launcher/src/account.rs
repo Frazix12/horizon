@@ -1639,9 +1639,7 @@ impl Accounts {
                 self.selected = Some(uuid);
             }
             Player::Offline(name) => {
-                if !offline_without_owner && !self.has_owner(store) {
-                    return Err(OFFLINE_NEEDS_OWNER.into());
-                }
+                // Patched: owner gate removed — offline play works without a Microsoft account.
                 let name = self.add_offline(&name)?;
                 self.selected = None;
                 self.offline_selected = Some(name);
@@ -1848,11 +1846,8 @@ pub fn launch(
             }
         }
     }
-    if owned {
-        Ok(pass)
-    } else {
-        Err(NoOwner)
-    }
+    // Patched: never refuse — allow launching without a Microsoft account.
+    Ok(pass)
 }
 
 /// The owner gate before the game starts. With the window's hidden developer option
