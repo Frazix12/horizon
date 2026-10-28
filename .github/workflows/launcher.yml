@@ -101,12 +101,6 @@ jobs:
             os: ubuntu-22.04
             asset: horizon-launcher-linux-x86_64.tar.gz
             binary: horizon-launcher
-          - name: macos
-            mac: true
-            asset: horizon-launcher-macos-arm64.zip
-            binary: horizon-launcher
-          - name: windows
-            os: windows-latest
             asset: horizon-launcher-windows-x64.zip
             binary: horizon-launcher.exe
             # The C runtime linked in: without it the launcher asks for VCRUNTIME140.dll,
