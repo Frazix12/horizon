@@ -1,10 +1,10 @@
-//! The owner gate from the outside: with no account that owns Minecraft: Java Edition in the
-//! launcher, neither `horizon-launcher play` nor the MCP server's play starts the game.
+//! Offline play from the outside: with no Microsoft account, play passes the owner gate and then
+//! stops at the next requirement when the test fixture has only an installed, unprepared version.
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
-const REFUSED: &str = "Sign in with a Microsoft account that owns Minecraft: Java Edition to play.";
+const NOT_PREPARED: &str = "is not prepared yet";
 
 /// Fresh homes with one installed (not prepared) version and an offline name, as a player who
 /// played offline before the gate has.
@@ -44,13 +44,13 @@ fn text(out: &Output) -> String {
 }
 
 #[test]
-fn the_cli_refuses_to_play_without_an_owner() {
+fn the_cli_passes_the_owner_gate_without_an_account() {
     let root = home("cli");
     let out = launcher(&root, &["play"]).output().unwrap();
     let said = text(&out);
     assert!(!out.status.success(), "{said}");
-    assert!(said.contains(REFUSED), "{said}");
-    assert!(said.contains("horizon-launcher account sign-in"), "{said}");
+    assert!(said.contains(NOT_PREPARED), "{said}");
+    assert!(!said.contains("Sign in with a Microsoft account"), "{said}");
     // Nothing of the game ran, and the offline name is still there.
     assert!(!root.join("game/sessions").exists());
     let accounts = std::fs::read_to_string(root.join("launcher/accounts.json")).unwrap();
@@ -59,7 +59,7 @@ fn the_cli_refuses_to_play_without_an_owner() {
 }
 
 #[test]
-fn the_mcp_server_refuses_to_play_without_an_owner() {
+fn the_mcp_server_passes_the_owner_gate_without_an_account() {
     let root = home("mcp");
     let mut child = launcher(&root, &["mcp"])
         .stdin(Stdio::piped())
@@ -84,6 +84,7 @@ fn the_mcp_server_refuses_to_play_without_an_owner() {
         .expect("a reply to play");
     assert_eq!(reply["result"]["isError"], true, "{reply}");
     let said = reply["result"]["content"][0]["text"].as_str().unwrap();
-    assert!(said.contains(REFUSED), "{said}");
+    assert!(said.contains(NOT_PREPARED), "{said}");
+    assert!(!said.contains("Sign in with a Microsoft account"), "{said}");
     let _ = std::fs::remove_dir_all(&root);
 }
